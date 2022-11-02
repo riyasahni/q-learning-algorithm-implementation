@@ -5,7 +5,9 @@ import numpy as np
 import os
 import random
 import pandas as pd
-
+import time
+from q_learning_project.msg import QLearningReward
+from q_learning_project.msg import RobotMoveObjectToTag
 # Path of directory on where this file is located
 path_prefix = os.path.dirname(__file__) + "/action_states/"
 
@@ -23,6 +25,8 @@ class QLearning(object):
         #
         # e.g. self.action_matrix[0][12] = 5
         self.action_matrix = np.loadtxt(path_prefix + "action_matrix.txt")
+
+        # publish the reward you get from move object to tag
 
         # Fetch actions. These are the only 9 possible actions the system can take.
         # self.actions is an array of dictionaries where the row index corresponds
@@ -49,27 +53,32 @@ class QLearning(object):
         # initializing empty q_matrix that is 's_t by a_t'
         # fill it all with 0s since we don't know anything about the initial state of the matrix
         # num rows in Q-matrix = number of states (rows of states matrix)
-        states = self.states.shape[0]
+        states = len(self.states)
         # num cols in Q-matrix = number of actions (rows of actions matrix --> 9)
-        actions = self.actions.shape[0]
+        actions = len(self.actions)
         # now initialize and return Q-matrix
         # q_matrix =  [[0 for i in range(states)] for j in range(actions)]
         self.q_matrix = np.zeros((states, actions), dtype = int)
 
         # define the decay factor
         self.decay = 0.8
-
         # set topic name
         # self.reward_topic = "reward"
+
+        # publish the robot action
+        rospy.Publisher("/q_learning/robot_action", RobotMoveObjectToTag, queue_size=20)
         # subscribe to the rewards ROS topic
         rospy.Subscriber("/q_learning/reward", QLearningReward, self.update_q_matrix)
 
-#    def init_starting_q_matrix(self):
+        time.sleep(1)
+        # def init_starting_q_matrix(self):
 
+
+    # do I need to create  a
     def update_q_matrix(self, data):
         # convergence criteria: create a flag that becomes 'False'  every time q_matrix is updated
         # once q_matrix has converged, then it will not be updated and converged flag will stay 'True'
-
+        print("in update q matrix")
         # create a counter to count number of iterations we've gone through q_matrix to update it
         iterations = 0
         while (True):
@@ -93,6 +102,7 @@ class QLearning(object):
                 # and update that cell. We leave alpha as 1.
                 initial_q_matrix_cell_val = self.q_matrix[s][action]
                 self.q_matrix[s][action] = reward + self.decay*max_next_state_q_val
+                print("just updated cell")
                 # check if the updated cell has the same value as the original. If the
                 # cell value has changed, then the q_matrix has not converged yet...
                 if initial_q_matrix_cell_val != self.q_matrix[s][action]:
@@ -115,3 +125,4 @@ class QLearning(object):
 if __name__ == "__main__":
     node = QLearning()
 
+    rospy.spin()
