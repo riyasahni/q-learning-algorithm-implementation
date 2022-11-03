@@ -16,12 +16,14 @@ class Perception:
                 # subscribe to the robot's RGB camera data stream
                 self.image_sub = rospy.Subscriber('camera/rgb/image_raw',
                         Image, self.image_callback)
-
+                # NOT.E FROM OH: USE CV2 LIBRARIES TO TAKE FRAMES OF IMAGES THAT WE GET FROM SUBSCRIBING
                 self.cmd_vel_pub = rospy.Publisher('cmd_vel',
                         Twist, queue_size=1)
 
                 self.twist = Twist()
-
+        # Identify_images should take in a frame image from a ROS topic that we subscribe to (bringup cam or something)
+        # and it should be able to give the directions in an angle or eventually "go towards" an item in the 
+        # image of a specific color
         def identify_objects(self):
                 return
         # make two sides, object side and tag side
