@@ -4,10 +4,12 @@ import rospy, cv2, cv_bridge, numpy
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Twist
 
-class Follower:
+class Perception:
 
         def __init__(self):
-
+                
+                rospy.init_node("perception")
+                # NAME FUNCTION HERE ^
                 # set up ROS / cv bridge
                 self.bridge = cv_bridge.CvBridge()
 
@@ -20,13 +22,11 @@ class Follower:
 
                 self.twist = Twist()
 
-        def identify_objects(self)
+        def identify_objects(self):
+                return
         # make two sides, object side and tag side
         # when on tag side, we can only go to a new object
         # when on object side, we must pick up and object
-
-                
-
 
         def image_callback(self, msg):
 
@@ -75,5 +75,5 @@ class Follower:
 if __name__ == '__main__':
 
         rospy.init_node('line_follower')
-        follower = Follower()
+        follower = Perception()
         rospy.spin()

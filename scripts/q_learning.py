@@ -66,16 +66,19 @@ class QLearning(object):
         # self.reward_topic = "reward"
 
         # publish the robot action
-        rospy.Publisher("/q_learning/robot_action", RobotMoveObjectToTag, queue_size=20)
+        pubber = rospy.Publisher("/q_learning/robot_action", RobotMoveObjectToTag, queue_size=20)
         # subscribe to the rewards ROS topic
-        rospy.Subscriber("/q_learning/reward", QLearningReward, self.update_q_matrix)
-
+        subber = rospy.Subscriber("/q_learning/reward", QLearningReward, self.reward_callback_handler)
+        print("init done")
         time.sleep(1)
+        current_reward = 0
         # def init_starting_q_matrix(self):
 
+    def reward_callback_handler(self, data):
+        current_reward = data
 
     # do I need to create  a
-    def update_q_matrix(self, data):
+    def update_q_matrix(self):
         # convergence criteria: create a flag that becomes 'False'  every time q_matrix is updated
         # once q_matrix has converged, then it will not be updated and converged flag will stay 'True'
         print("in update q matrix")
@@ -92,16 +95,16 @@ class QLearning(object):
                     if self.action_matrix[s][rand_next_state] != -1:
                         # save the valid action
                         action = self.action_matrix[s][rand_next_state]
+                        self.pubber.publish(action)
+                        print("published action\n")
                         # break out of the regeneration loop
                         break
-                # extract the reward from the ROS topic
-                reward = data
                 # find the q_matrix max val for the next state after the action
                 max_next_state_q_val = max(q_matrix[rand_next_state])
                 # find the cell in the q_matrix with corresponding state and valid action
                 # and update that cell. We leave alpha as 1.
                 initial_q_matrix_cell_val = self.q_matrix[s][action]
-                self.q_matrix[s][action] = reward + self.decay*max_next_state_q_val
+                self.q_matrix[s][action] = current_reward + self.decay*max_next_state_q_val
                 print("just updated cell")
                 # check if the updated cell has the same value as the original. If the
                 # cell value has changed, then the q_matrix has not converged yet...
@@ -124,5 +127,4 @@ class QLearning(object):
 
 if __name__ == "__main__":
     node = QLearning()
-
     rospy.spin()
