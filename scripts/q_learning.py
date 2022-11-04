@@ -50,42 +50,29 @@ class QLearning(object):
         # Note: that not all states are possible to get to.
         self.states = np.loadtxt(path_prefix + "states.txt")
         self.states = list(map(lambda x: list(map(lambda y: int(y), x)), self.states))
-
-        # initializing empty q_matrix that is 's_t by a_t'
-        # fill it all with 0s since we don't know anything about the initial state of the matrix
         # num rows in Q-matrix = number of states (rows of states matrix)
         self.state_num = len(self.states)
         # num cols in Q-matrix = number of actions (rows of actions matrix --> 9)
         self.action_num = len(self.actions)
-        # now initialize and return Q-matrix
-        # q_matrix =  [[0 for i in range(states)] for j in range(actions)]
+        # initializing empty q_matrix that is 's_t by a_t'
+        # fill it all with 0s since we don't know anything about the initial state of the matrix
         self.m = QMatrix()
         self.m.q_matrix = np.zeros((self.state_num, self.action_num), dtype = float)
-
-#        self.q_matrix = np.zeros((self.state_num, self.action_num), dtype = int)
-
         # define the decay factor
         self.decay = 0.5
-
         # publish the q_matrix
         self.q_matrix_pub = rospy.Publisher("/q_learning/q_matrix", QMatrix, queue_size=10)
         # publish the robot action
         self.pub = rospy.Publisher("/q_learning/robot_action", RobotMoveObjectToTag, queue_size=10)
         # subscribe to the rewards ROS topic
-        #time.sleep(1)
         self.current_reward = QLearningReward()
-       
         rospy.Subscriber("/q_learning/reward", QLearningReward, self.reward_callback_handler)
         # print("init done")
         time.sleep(1)
 
-        # self.current_reward.reward = 0
-        # def init_starting_q_matrix(self):
-
     def reward_callback_handler(self, data):
-        # print("reward callback data: ", data)
+        # callback function to collect reward from reward ROS topic after action is published
         self.current_reward = data
-        # print("reward: ", self.current_reward.reward)
 
     def valid_actions_given_curr_state(self, s):
         # loop through action_matrix
@@ -104,18 +91,16 @@ class QLearning(object):
             index +=1
         return valid_actions
 
-    # do I need to create  a
     def update_q_matrix(self):
         # convergence criteria: create a flag that becomes 'False'  every time q_matrix is updated
         # once q_matrix has converged, then it will not be updated and converged flag will stay 'True'
-        # create a counter to count number of iterations we've gone through q_matrix to update it
-        # converged = False
+        # create a counter to count number of iterations we've gone through q_matrix to update it.
+        # Force Q-matrix to undergo at least 1000 iterations before fully considering if it's converged.
         iterations = 0
         curr_state = 0
         converged = False
         while (True):
             converged = True
-
             list_of_valid_actions = self.valid_actions_given_curr_state(curr_state)
             if list_of_valid_actions == []:
                 curr_state = 0
@@ -143,16 +128,15 @@ class QLearning(object):
             # and update that cell. We leave alpha as 1.
             initial_q_matrix_cell_val = self.m.q_matrix[curr_state][rand_action_id]
             self.m.q_matrix[curr_state][rand_action_id] = self.current_reward.reward + self.decay*max_next_state_q_val
-
             self.q_matrix_pub.publish(self.m)
             time.sleep(.01)
             # check if the updated cell has the same value as the original. If the
             # cell value has changed, then the q_matrix has not converged yet...
             if initial_q_matrix_cell_val != self.m.q_matrix[curr_state][rand_action_id]:
                 converged = False
-            print("curr_state", curr_state)
+            # print("curr_state", curr_state)
             curr_state = rand_next_state
-            print("iterations: ", iterations)
+            # print("iterations: ", iterations)
             iterations += 1
             # check if no cells have been updated by the 10th iteration
             if iterations >= 1000 and converged:
@@ -162,14 +146,13 @@ class QLearning(object):
         return
 
     def save_q_matrix(self):
-        # TODO: You'll wan t to save your q_matrix to a file once it is done to
-        # avoid retraining
         # use python built-in string to csv converter to convert matrix to csv file! :)
         pd.DataFrame(self.m.q_matrix).to_csv('converged_q_matrix.csv')
         return
 
 if __name__ == "__main__":
     node = QLearning()
+    # call functions from ROS node to run
     node.update_q_matrix()
     node.save_q_matrix()
     rospy.spin()
