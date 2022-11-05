@@ -37,11 +37,11 @@ class Perception:
                 hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
                 # defines the upper and lower bounds for what should be considered 'orange'
-                lower_orange = numpy.array([ 10, 50, 150])
-                upper_orange = numpy.array([20, 255, 255])
-                mask = cv2.inRange(hsv, lower_orange, upper_orange)
+                lower_magenta = numpy.array([338, 145, 214])
+                upper_magenta = numpy.array([330, 255, 255])
+                mask = cv2.inRange(hsv, lower_magenta, upper_magenta)
 
-                # we now erase all pixels that aren't orange
+                # we now erase all pixels that aren't magenta
                 h, w, d = image.shape
                 search_top = int(3*h/4)
                 search_bot = int(3*h/4 + 20)
@@ -69,6 +69,7 @@ class Perception:
                         self.twist.linear.x = 0.2
                         self.twist.angular.z = k_p * err
                         self.cmd_vel_pub.publish(self.twist)
+                        # HERE, CODING SIMILAR TO FOLLOW PERSON BUT WITH .2M DISTANCE
 
                 # show the debugging window
                 cv2.imshow("window", image)
