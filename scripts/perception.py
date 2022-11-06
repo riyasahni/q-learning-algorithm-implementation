@@ -4,7 +4,7 @@ import rospy, cv2, cv_bridge, numpy
 from sensor_msgs.msg import Image, LaserScan
 from geometry_msgs.msg import Twist, Vector3
 
-class Perception:
+class Perceive_and_Move:
 
         def __init__(self):
                 print("in init!")
@@ -149,6 +149,6 @@ class Perception:
 
 if __name__ == '__main__':
 
-        rospy.init_node('perception')
-        follower = Perception()
+        rospy.init_node('percieveandmove')
+        follower = Perceive_and_Move()
         rospy.spin()
