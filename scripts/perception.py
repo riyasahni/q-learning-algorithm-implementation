@@ -22,6 +22,8 @@ class Perception:
             Twist, queue_size=1)
         # subscribe to lidar
         # self.scanner = rospy.Subscriber('/scan', LaserScan, self.identify_objects)
+        # publish arm movements
+        self.arm_pub = rospy.Publisher('joint_state_controller', JointTrajectory, queue_size = 2)
 
 
         # save the object color given to us from the action
@@ -79,7 +81,8 @@ class Perception:
             #     float64[] effort
             #     duration time_from_start
             arm_movement_point = JointTrajectoryPoint(
-                positions = [.1, 0, 0, 0]
+                positions = [.1, 1, 0, 0],
+                velocities = [1, 1, 0, 0]
             )
 
             arm_movement_msg = JointTrajectory(
@@ -88,6 +91,8 @@ class Perception:
 
             print(arm_movement_msg.points)
             print(arm_movement_msg.points.positions)
+
+            self.arm_pub.publish(arm_movement_msg)
         
             # https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide_basic_operation/
             # http://docs.ros.org/en/melodic/api/trajectory_msgs/html/msg/JointTrajectory.html
