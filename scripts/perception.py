@@ -3,7 +3,7 @@
 import rospy, cv2, cv_bridge, numpy
 from sensor_msgs.msg import Image, LaserScan
 from geometry_msgs.msg import Twist, Vector3
-from trajectory_msgs.msg import JointTrajectory
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 class Perception:
     def __init__(self):
@@ -39,6 +39,8 @@ class Perception:
         self.twist = Twist()
 
         print("just finished init!")
+
+        self.pickup()
 
 #        def move_to_target(self, data : LaserScan):
 #                dataList = data.ranges
@@ -76,6 +78,16 @@ class Perception:
             #     float64[] accelerations
             #     float64[] effort
             #     duration time_from_start
+            arm_movement_point = JointTrajectoryPoint(
+                positions = [.1, 0, 0, 0]
+            )
+
+            arm_movement_msg = JointTrajectory(
+                points = arm_movement_point
+            )
+
+            print(arm_movement_msg.points)
+            print(arm_movement_msg.points.positions)
         
             # https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide_basic_operation/
             # http://docs.ros.org/en/melodic/api/trajectory_msgs/html/msg/JointTrajectory.html
