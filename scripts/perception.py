@@ -63,10 +63,22 @@ class Perception:
 #                self.robot_movement_pub.publish(turn)
 
     def pickup(self):
-        JointTrajectory(){
-            # ADD PARAMS
-        }
+        # JointTrajectory() // THIS IS THE MESSAGE FOR MOVING THE ARM
+            # Args: 
+            #      string[] joint_names
+            #      JointTrajectoryPoint[] points
+
+            # Type: JointTrajectoryPoint 
+                
+            # Args:
+            #     float64[] positions
+            #     float64[] velocities
+            #     float64[] accelerations
+            #     float64[] effort
+            #     duration time_from_start
+        
             # https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide_basic_operation/
+            # http://docs.ros.org/en/melodic/api/trajectory_msgs/html/msg/JointTrajectory.html
 
     def putdown(self):
         return
