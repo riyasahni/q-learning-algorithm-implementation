@@ -3,6 +3,7 @@
 import rospy, cv2, cv_bridge, numpy
 from sensor_msgs.msg import Image, LaserScan
 from geometry_msgs.msg import Twist, Vector3
+from trajectory_msgs.msg import JointTrajectory
 
 class Perception:
     def __init__(self):
@@ -62,7 +63,9 @@ class Perception:
 #                self.robot_movement_pub.publish(turn)
 
     def pickup(self):
-        return
+        JointTrajectory(){
+            # ADD PARAMS
+        }
             # https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide_basic_operation/
 
     def putdown(self):
@@ -171,7 +174,7 @@ class Perception:
 
                 # visualize a red circle in our debugging window to indicate
                 # the center point of the orange pixels
-                cv2.circle(image, (cx, cy), 20, (0,0,255), -1gw)
+                cv2.circle(image, (cx, cy), 20, (0,0,255), hsv) # THIS SAID -lgw (unsure what that means)
 
                 # self.cmd_vel_pub.publish(self.twist)
                 print("selected color object found! -- ", self.object_color)
