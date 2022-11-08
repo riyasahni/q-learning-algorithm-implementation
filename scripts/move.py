@@ -14,11 +14,6 @@ class Robot(object):
         # initialize this node
         rospy.init_node('turtlebot3_dance')
 
-        # Traffic status subscriber
-        rospy.Subscriber("/arm_status", ArmMove, self.traffic_dir_received)
-
-        # the interface to the group of joints making up the turtlebot3
-        # openmanipulator arm
         self.move_group_arm = moveit_commander.MoveGroupCommander("arm")
 
         # the interface to the group of joints making up the turtlebot3

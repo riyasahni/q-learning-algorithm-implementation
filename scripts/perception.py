@@ -3,7 +3,8 @@
 import rospy, cv2, cv_bridge, numpy
 from sensor_msgs.msg import Image, LaserScan
 from geometry_msgs.msg import Twist, Vector3
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+import moveit_commander
+import math
 
 class Perception:
     def __init__(self):
@@ -12,7 +13,7 @@ class Perception:
         self.bridge = cv_bridge.CvBridge()
 
         # initialize debugging window:
-        cv2.namedWindow("window", 1)
+        # cv2.namedWindow("window", 1)
 
         # subscribe to the robot's RGB camera data stream
         self.image_sub = rospy.Subscriber('camera/rgb/image_raw',
@@ -22,8 +23,6 @@ class Perception:
             Twist, queue_size=1)
         # subscribe to lidar
         # self.scanner = rospy.Subscriber('/scan', LaserScan, self.identify_objects)
-        # publish arm movements
-        self.arm_pub = rospy.Publisher('joint_state_controller', JointTrajectory, queue_size = 2)
 
 
         # save the object color given to us from the action
@@ -40,9 +39,28 @@ class Perception:
 
         self.twist = Twist()
 
-        print("just finished init!")
+        #--------------------------------------------------------------#
+        # Initialization for Arm Commands
+        #--------------------------------------------------------------#
 
-        self.pickup()
+        # the interface to the group of joints making up the turtlebot3
+        # openmanipulator arm and gripper
+        self.move_group_arm = moveit_commander.MoveGroupCommander("arm")
+        self.move_group_gripper = moveit_commander.MoveGroupCommander("gripper")
+        # Predefined movements
+        self.gripper_joint_open = [0.01, 0.01]
+        self.gripper_joint_close = [0.001, 0]
+
+        self.neutral_arm_pose = [0,math.radians(-40),math.radians(45),0]
+        # Reset arm position
+        self.move_group_arm.go(self.neutral_arm_pose, wait=True)
+
+        #--------------------------------------------------------------#
+        # Initialization for Aruco
+        #--------------------------------------------------------------#
+        # aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
+
+        print("just finished init!")
 
 #        def move_to_target(self, data : LaserScan):
 #                dataList = data.ranges
@@ -67,38 +85,39 @@ class Perception:
 #                self.robot_movement_pub.publish(turn)
 
     def pickup(self):
-        # JointTrajectory() // THIS IS THE MESSAGE FOR MOVING THE ARM
-            # Args: 
-            #      string[] joint_names
-            #      JointTrajectoryPoint[] points
-
-            # Type: JointTrajectoryPoint 
-                
-            # Args:
-            #     float64[] positions
-            #     float64[] velocities
-            #     float64[] accelerations
-            #     float64[] effort
-            #     duration time_from_start
-            arm_movement_point = JointTrajectoryPoint(
-                positions = [.1, 1, 0, 0],
-                velocities = [1, 1, 0, 0]
-            )
-
-            arm_movement_msg = JointTrajectory(
-                points = arm_movement_point
-            )
-
-            print(arm_movement_msg.points)
-            print(arm_movement_msg.points.positions)
-
-            self.arm_pub.publish(arm_movement_msg)
+        # Open gripper
+        self.move_group_gripper.go(self.gripper_joint_open, wait = True)
+        self.move_group_gripper.stop()
+        rospy.sleep(4)
+        # Move arm forward a bit to pick up object
+        self.move_group_arm.go([0, math.radians(40), math.radians(-5), math.radians(-35)], wait=True)
+        self.move_group_arm.stop()
+        rospy.sleep(4)
+        # Close gripper
+        self.move_group_gripper.go(self.gripper_joint_close, wait = True)
+        self.move_group_gripper.stop()
+        rospy.sleep(4)
+        # Lift item
+        self.move_group_arm.go([0, math.radians(-40), math.radians(-5), math.radians(0)], wait=True)
+        self.move_group_arm.stop()
+        rospy.sleep(1)
         
             # https://emanual.robotis.com/docs/en/platform/openmanipulator_x/quick_start_guide_basic_operation/
             # http://docs.ros.org/en/melodic/api/trajectory_msgs/html/msg/JointTrajectory.html
 
     def putdown(self):
-        return
+        # Move arm down to put down object
+        self.move_group_arm.go([0, math.radians(40), math.radians(-5), math.radians(-35)], wait=True)
+        self.move_group_arm.stop()
+        rospy.sleep(1)
+        # Open gripper
+        self.move_group_gripper.go(self.gripper_joint_open, wait = True)
+        self.move_group_gripper.stop()
+        rospy.sleep(1)
+        # Move arm to neutral pose
+        self.move_group_arm.go(self.neutral_arm_pose, wait=True)
+        self.move_group_arm.stop()
+        rospy.sleep(1)
 
     ####################################
     # We're given an action based on the state we're in
@@ -232,5 +251,5 @@ class Perception:
 
 if __name__ == '__main__':
         rospy.init_node('perception')
-        Perception()
+        p = Perception()
         rospy.spin()
