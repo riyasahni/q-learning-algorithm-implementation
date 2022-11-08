@@ -145,9 +145,46 @@ class QLearning(object):
                 break
         return
 
-    # function to execute the correct action from converged Q-matrix given state
-    def execute_action(self):
-        # order_of_actions
+    # function to return the list of actions for robot to execute that yield highest expected reward from converged Q-matrix
+    def return_best_actions_list(self):
+        # start from state 0 (origin)
+        curr_state = 0
+        # create list to later fill with correct order of highest-expected reward actions that robot should take
+        list_of_robot_actions = []
+        while True:
+            # go to the row for given state in converged Q-matrix
+            row_of_exp_rewards = self.m.q_matrix[curr_state]
+            # find the action that yields highest expected reward.
+            max_expected_reward = max(row_of_exp_rewards)
+            # if the maximum reward = 100 then that means the next action will complete the robot's journey
+            # so append the last action for robot to take and return the complete list of robot actions
+            if max_expected_reward != 100:
+                # now collect all the actions (indexes of the row) that yield the max expected reward
+                best_actions_to_take = []
+                for index, exp_rew in enumerate(row_of_exp_rewards):
+                    if exp_rew == max_expected_reward:
+                        # extract the action number (index) and append to list of best actions to take from given state
+                        best_actions_to_take.append(index)
+                # now randomly select an action from the best actions to take
+                rand_best_selected_action = random.choices(best_actions_to_take)
+                # now append the randomly best selected action to the list of robot actions
+                list_of_robot_actions.append(rand_best_selected_action[0])
+                # now based off the action we took, find out what our next state is that we end up in
+                # and update curr_state
+                # iterate through action_matrix and find the next resulting state
+                extracted_row_from_action_matrix = self.action_matrix[curr_state]
+                for next_state, action in enumerate(extracted_row_from_action_matrix):
+                    if action == rand_best_selected_action:
+                        curr_state = next_state
+                        break
+            else:
+                # else, this is the last action the robot is taking (since it's receiving its reward of 100)
+                # so find out what the action is (index of the max_expected_reward in row_of_exp_rewards)
+                for index, rew in enumerate(row_of_exp_rewards):
+                    if rew == max_expected_reward:
+                        list_of_robot_actions.append(index)
+                        print("list of robot actions: ", list_of_robot_actions)
+                        return
         return
 
     def save_q_matrix(self):
@@ -160,4 +197,5 @@ if __name__ == "__main__":
     # call functions from ROS node to run
     node.update_q_matrix()
     node.save_q_matrix()
+    node.return_best_actions_list()
     rospy.spin()
