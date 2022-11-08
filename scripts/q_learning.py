@@ -145,6 +145,11 @@ class QLearning(object):
                 break
         return
 
+    # function to execute the correct action from converged Q-matrix given state
+    def execute_action(self):
+        # order_of_actions
+        return
+
     def save_q_matrix(self):
         # use python built-in string to csv converter to convert matrix to csv file! :)
         pd.DataFrame(self.m.q_matrix).to_csv('converged_q_matrix.csv')
